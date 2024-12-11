@@ -153,7 +153,7 @@ const Login = ({ navigation }) => {
   return (
     <View style={[styles.container, currentStyles.container]}>
       <Image
-        source={require("../../assets/images/react-logo.png")}
+        source={require("@/assets/images/react-logo.png")}
         style={styles.image}
       />
 

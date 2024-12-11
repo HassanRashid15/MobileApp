@@ -1,22 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
-  Button,
+  TouchableOpacity,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  Appearance,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Ionicons";
 
-const Login = () => {
+const Login = ({ navigation }) => {
+  // Add navigation prop to handle routing
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false); // State to toggle password visibility
+  const [theme, setTheme] = useState(Appearance.getColorScheme()); // Track theme (light or dark)
+
+  // Detect system theme changes
+  useEffect(() => {
+    const listener = Appearance.addChangeListener(({ colorScheme }) => {
+      setTheme(colorScheme);
+    });
+    return () => listener.remove();
+  }, []);
 
   // Function to validate email and password
   const validateForm = () => {
@@ -70,31 +80,104 @@ const Login = () => {
     }
   };
 
+  // Styles for dark and light themes
+  const lightStyles = {
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: "#fff",
+    },
+    text: {
+      color: "#333", // Dark text for light mode
+    },
+    input: {
+      backgroundColor: "#fff", // Light background for input in light mode
+      borderColor: "#ccc", // Light border color
+    },
+    errorText: {
+      color: "red",
+    },
+    button: {
+      backgroundColor: "#1e90ff", // Blue background for dark theme
+      paddingVertical: 12,
+      width: "50%",
+      paddingHorizontal: 30,
+      borderRadius: 5,
+    },
+    buttonText: {
+      color: "#fff", // White text for light theme
+      fontSize: 16,
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+  };
+
+  const darkStyles = {
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: "#000", // Dark background for dark mode
+    },
+    text: {
+      color: "#fff", // Light text for dark mode
+    },
+    input: {
+      backgroundColor: "#333", // Dark background for input in dark mode
+      borderColor: "#555", // Darker border color
+    },
+    errorText: {
+      color: "red",
+    },
+    button: {
+      backgroundColor: "#1e90ff", // Blue background for dark theme
+      paddingVertical: 12,
+      paddingHorizontal: 30,
+      width: "50%",
+      borderRadius: 5,
+    },
+    buttonText: {
+      color: "#fff", // White text for dark theme
+      fontSize: 16,
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+  };
+
+  // Apply styles based on the current theme
+  const currentStyles = theme === "dark" ? darkStyles : lightStyles;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, currentStyles.container]}>
       <Image
         source={require("../../assets/images/react-logo.png")}
         style={styles.image}
       />
 
-      <Text style={styles.heading}>Login</Text>
+      <Text style={[styles.heading, currentStyles.text]}>Login</Text>
+
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={[styles.label, currentStyles.text]}>Email</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, currentStyles.input]}
           placeholder="Enter your email"
           value={email}
           onChangeText={(text) => setEmail(text)}
           keyboardType="email-address"
         />
-        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+        {emailError ? (
+          <Text style={currentStyles.errorText}>{emailError}</Text>
+        ) : null}
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Password</Text>
+        <Text style={[styles.label, currentStyles.text]}>Password</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, currentStyles.input]}
             placeholder="Enter your password"
             value={password}
             onChangeText={(text) => setPassword(text)}
@@ -106,17 +189,31 @@ const Login = () => {
           >
             <Icon
               name={isPasswordVisible ? "eye-off" : "eye"}
-              size={24}
-              color="#333"
+              size={16}
+              color={theme === "dark" ? "#fff" : "#333"}
             />
           </TouchableOpacity>
         </View>
         {passwordError ? (
-          <Text style={styles.errorText}>{passwordError}</Text>
+          <Text style={currentStyles.errorText}>{passwordError}</Text>
         ) : null}
       </View>
-      <Button title="Login" onPress={handleSubmit} />
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+
+      {/* Custom login button */}
+      <TouchableOpacity style={currentStyles.button} onPress={handleSubmit}>
+        <Text style={currentStyles.buttonText}>Login</Text>
+      </TouchableOpacity>
+
+      {/* Register link */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Register")}
+        style={styles.registerLink}
+      >
+        <Text style={currentStyles.text}>Don't have an account? Register</Text>
+      </TouchableOpacity>
+
+      {/* Toast Component */}
+      <Toast />
     </View>
   );
 };
@@ -141,16 +238,14 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%", // Ensure full width of the container
-    marginBottom: 10,
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: "#333",
   },
   input: {
     height: 40,
-    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
     paddingLeft: 10,
@@ -165,11 +260,14 @@ const styles = StyleSheet.create({
   eyeIconContainer: {
     position: "absolute",
     right: 10,
+    fontSize: 12,
   },
   errorText: {
-    color: "red",
     fontSize: 12,
-    marginTop: 5,
+    marginTop: 10,
+  },
+  registerLink: {
+    marginTop: 15,
   },
 });
 

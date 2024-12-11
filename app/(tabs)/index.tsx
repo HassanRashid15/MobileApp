@@ -1,74 +1,108 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { height } = Dimensions.get("window");
 
-export default function HomeScreen() {
+const Index = () => {
+  const [showSecondLayout, setShowSecondLayout] = useState(false);
+  const firstLayoutAnim = useRef(new Animated.Value(0)).current;
+  const secondLayoutHeight = useRef(new Animated.Value(0)).current;
+
+  const navigation = useNavigation(); // Using navigation to navigate to the tabs
+
+  const handlePress = () => {
+    // Animate the first layout to swipe up and disappear
+    Animated.timing(firstLayoutAnim, {
+      toValue: -height, // Moves the first layout off-screen (swipe up)
+      duration: 1500,
+      useNativeDriver: true,
+    }).start();
+
+    // Animate the second layout to expand to full screen height
+    Animated.timing(secondLayoutHeight, {
+      toValue: height, // Expand the second layout to full screen height
+      duration: 1500,
+      useNativeDriver: false,
+    }).start();
+
+    // Show the second layout and navigate to the tabs after the animation completes
+    setTimeout(() => {
+      setShowSecondLayout(true);
+
+      // Navigate to the "Tabs" screen after the animation
+      navigation.replace("Tabs"); // Replace the current screen with the Tabs screen
+    }, 1350); // Wait for the animation to finish
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {/* First Layout (Animated View) */}
+      <Animated.View
+        style={[
+          styles.layout,
+          { transform: [{ translateY: firstLayoutAnim }] },
+        ]}
+      >
+        <Text style={styles.text}>First Layout</Text>
+        <TouchableOpacity onPress={handlePress} style={styles.button}>
+          <Text style={styles.buttonText}>Click Me</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Second Layout (Animated View) */}
+      {showSecondLayout && (
+        <Animated.View
+          style={[
+            styles.layout,
+            {
+              height: secondLayoutHeight,
+              backgroundColor: "#2196F3", // Different color for second layout
+            },
+          ]}
+        >
+          <Text style={styles.text}>Second Layout</Text>
+        </Animated.View>
+      )}
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  layout: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute", // Stack layouts on top of each other
+    padding: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  text: {
+    color: "white",
+    fontSize: 20,
+  },
+  button: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#FF5722",
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
   },
 });
+
+export default Index;
